@@ -1,0 +1,21 @@
+{
+  "name": "fbcrawlr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --experimental-specifier-resolution=node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dotenv-yaml": "^0.1.4",
+    "puppeteer": "^5.5.0",
+    "yargs": "^16.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.15.0"
+  }
+}
