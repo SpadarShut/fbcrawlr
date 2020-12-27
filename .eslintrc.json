@@ -8,6 +8,15 @@
         "ecmaVersion": 12,
         "sourceType": "module"
     },
+    "overrides": [
+        {
+            "files": ["*.test.js"],
+            "plugins": ["jest"],
+            "env": {
+                "jest/globals": true
+            }
+        }
+    ],
     "rules": {
         "indent": [
             "warn",
@@ -17,6 +26,7 @@
             "error",
             "unix"
         ],
+        "brace-style": ["warn", "stroustrup"],
         "quotes": [
             "error",
             "single"
