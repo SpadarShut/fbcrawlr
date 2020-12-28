@@ -1,4 +1,5 @@
 import { SELECTORS } from './selectors'
+import { setupPage } from './setupPage'
 
 export async function parsePost({url, browser}) {
   console.log('Parsing ', url)
@@ -7,10 +8,10 @@ export async function parsePost({url, browser}) {
     waitUntil: 'networkidle2'
   })
   console.log('Page opened', url)
-  await page.addScriptTag({path: './utils/browser.js', type: 'module'})
+  await setupPage(page)
   let result = await page.$eval(SELECTORS.postRoot, (node, {SELECTORS, url}) => {
     /* eslint-env browser */
-    /* globals $, $$ */
+    /* globals __ */
     window.console.log('In page, hello from kuklavod)', window._u)
     let _url = new URL(url)
     try {
@@ -22,11 +23,11 @@ export async function parsePost({url, browser}) {
         // todo post text
         // todo load all comments?
         url: _url.href,
-        reactionsUrl: $(SELECTORS.postReactions, node).href,
-        shares: $(SELECTORS.postShares, node)?.textContent,
-        comments: $$(SELECTORS.postComment, node).map((comm) => ({
-          text: $(SELECTORS.postCommentBody, comm).innerText,
-          reactionsUrl: $(SELECTORS.postReactions, comm).href,
+        reactionsUrl: __.$(SELECTORS.postReactions, node).href,
+        shares: __.$(SELECTORS.postShares, node)?.textContent,
+        comments: __.$$(SELECTORS.postComment, node).map((comm) => ({
+          text: __.$(SELECTORS.postCommentBody, comm).innerText,
+          reactionsUrl: __.$(SELECTORS.postReactions, comm).href,
           id: comm.dataset.uniqueid
         })),
       }

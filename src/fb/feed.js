@@ -1,4 +1,5 @@
 import { SELECTORS } from './selectors'
+import { setupPage } from './setupPage'
 
 export async function collectPosts({url, browser, dateTo, dateFrom}) {
   console.log('collectPosts: ', url)
@@ -8,11 +9,11 @@ export async function collectPosts({url, browser, dateTo, dateFrom}) {
   })
 
   await page.waitForSelector(SELECTORS.feedPost)
-  await page.addScriptTag({path: './utils/browser.js', type: 'module'})
+  await setupPage(page)
   let posts = await page.$$eval(SELECTORS.feedPost, (posts, SELECTORS) => {
     /* eslint-env browser */
-    /* globals Log */
-    const log = Log('collectPosts')
+    /* globals __ */
+    const log = __.Log('collectPosts')
 
     log('found posts', posts.length)
     return posts.map(post => {

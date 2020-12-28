@@ -8,6 +8,7 @@ import { login } from './fb/login'
 import { cleanupURL, isSinglePostURL } from './fb/links'
 import { disableTranslations, ensureEnglishUI } from './fb/lang'
 import { collectPosts, parsePost } from './fb'
+import { setupPage } from './fb/setupPage'
 
 const config = dotenv.config()
 const argv = yargs(hideBin(process.argv)).argv
@@ -41,7 +42,8 @@ const {
   })
 
   await ensureEnglishUI(page)
-  await disableTranslations(page)
+  // todo only run once for user
+  // await disableTranslations(page)
 
   const results = PAGES
     .filter(url => !!url)
