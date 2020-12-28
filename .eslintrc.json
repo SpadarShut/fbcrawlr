@@ -39,5 +39,10 @@
             "warn",
             {}
         ]
-    }
+    },
+    "ignorePatterns": [
+        "build/*.js",
+        "output/"
+    ]
 }
+
