@@ -4,12 +4,18 @@ export const SELECTORS = {
   twoFactorCodeInput: '#approvals_code',
   checkpointSubmit: '#checkpointSubmitButton',
   postsContainer: '.storyStream',
-  post: '.storyStream > article', // [data-sigil="m-story-view"]
-  commentsToken: '[data-sigil="comments-token"]',
-  sharedTokenNode: '[data-sigil="comments-token"] + *',
-  reactions: '[data-sigil="reactions-sentence-container"]',
+  feedPost: '.storyStream > article', // [data-sigil="m-story-view"]
   reactionsMetaContainer: '[data-sigil="reactions-bling-bar"]',
-  hasRepost: '[data-sigil="feed-ufi-metadata"]', //[data-sigil="feed-ufi-metadata"]
-  postLink: '[data-sigil="feed-ufi-trigger"]',
+  hasRepost: '[data-sigil="feed-ufi-metadata"]',
+  feedScrollDetector: '[data-sigil="marea"]',
 
+  // single post page
+  postRoot: '[data-sigil="m-story-view"]',
+  postLink: '[data-sigil="feed-ufi-trigger"]',
+  postTime: '[data-sigil="m-feed-voice-subtitle"] abbr',
+  postShares: '[data-sigil="feed-ufi-sharers"]',
+  postReactions: 'a[href*="ufi/reaction"]',
+  postCommentsRoot: '[data-sigil="m-mentions-expand"]',
+  postComment: '[data-sigil="comment"]',
+  postCommentBody: '[data-sigil="comment-body"]',
 }

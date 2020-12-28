@@ -1,9 +1,9 @@
-import fs from 'fs'
+import fs from 'fs/promises'
 
 export const saveJson = ({filename, data}) => {
   let posts = ''
   try {
-    posts = JSON.stringify(data)
+    posts = JSON.stringify(data, null, 2)
   }
   catch (e){
     console.log('Couldnt stringify data', e)

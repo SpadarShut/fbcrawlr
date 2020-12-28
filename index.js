@@ -2,10 +2,12 @@ import puppeteer from 'puppeteer'
 import dotenv from 'dotenv-yaml'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { prepareURL } from './utils/url.js'
-import { SELECTORS } from './fb/selectors'
-import { saveJson } from './utils/utils/fs'
+import { prepareURL } from './utils/url'
+import { saveJson } from './utils/fs'
 import { login } from './fb/login'
+import { cleanupURL, isSinglePostURL } from './fb/links'
+import { disableTranslations, ensureEnglishUI } from './fb/lang'
+import { collectPosts, parsePost } from './fb'
 
 const config = dotenv.config()
 const argv = yargs(hideBin(process.argv)).argv
@@ -28,7 +30,7 @@ const {
       '--disable-setuid-sandbox'
     ]
   })
-  const page = await browser.newPage()
+  const [page] = await browser.pages()
 
   await login({
     page,
@@ -38,77 +40,67 @@ const {
     headless
   })
 
+  await ensureEnglishUI(page)
+  await disableTranslations(page)
+
   const results = PAGES
     .filter(url => !!url)
     .map((url) => {
-      return scrape({
-        url: prepareURL(url),
-        browser
-      })
+      url = prepareURL(url)
+
+      return {
+        url,
+        data: scrapeURL({ url, browser })
+      }
     })
 
-  await Promise.all(
-    results.map(async (_page) => {
-      const page = await _page
+  // page.close()
 
-      return saveJson({
-        data: page.posts,
-        filename: `output/${new URL(page.url).pathname}.json`
-      })
+  await Promise.all(
+    results.map(async (res) => {
+      let data = await res.data
+      let filename = new URL(res.url).pathname.substring(1).replace(/:\?\//, '_')
+      filename = `output/${filename}.json`
+
+      console.log('DONE!', res.url, data)
+
+      return saveJson({ data, filename })
     }))
 
-  await browser.close()
+  // await browser.close()
 })()
 
-async function scrape(opts) {
-  const { url, browser } = opts
-  const page = await browser.newPage()
-  await page.goto(url, {
-    waitUntil: 'networkidle2'
-  })
-  // todo detect if this is a single post or story stream
-  await page.waitForSelector(SELECTORS.post)
-  let posts = await page.$$eval(SELECTORS.postLink, (posts) => {
-    return posts.map(a => a.href)
-  })
-  let postsData = await Promise.all(
-    posts.slice(0, 1).map(url => parsePost({
-      url,
-      browser
-    }))
-  )
-  console.log('All parsed!')
-  const result = {
-    url,
-    posts: postsData
+async function scrapeURL(opts) {
+  const { url, browser, dateFrom, dateTo } = opts
+  console.log('scrapeURL: start scraping ', url)
+  let que = []
+  let result = []
+
+  if (isSinglePostURL(url)){
+    result.push(parsePost({ url, browser }))
+  }
+  else {
+    que = await collectPosts({ url, browser, dateTo, dateFrom })
   }
 
-  return result
-}
+  console.log('Awaiting parsing queue')
 
-async function parsePost({url, browser}) {
-  console.log('Parsing ', url)
-  const page = await browser.newPage()
-  await page.goto(url)
-  await page.waitForNavigation()
-  // console.log(url, 'waiting for selector')
-  // await page.waitForSelector(SELECTORS.post)
-  // todo
-  const result = await page.$eval(SELECTORS.post, (node, SELECTORS) => {
-    console.log('In page, hello from kuklavod)')
-    let _url = URL(url)
-    _url.search = ''
+  que
+    .filter(page => !!page.url)
+    .slice(0,1)
+    .forEach(page => {
+      result.push(
+        parsePost({
+          ...page,
+          url: cleanupURL(page.url),
+          browser
+        })
+      )
+    })
 
-    return {
-      parseTime: new Date().getTime(),
-      url: _url.href,
-      commentsCount: parseInt(node.querySelector(SELECTORS.commentsToken).textContent),
-      sharedCount: parseInt(node.querySelector(SELECTORS.sharedTokenNode).textContent)
-    }
-  }, SELECTORS)
+  result = await Promise.all(result)
 
-  console.log('parsing done:', result)
+  console.log('Scraping page done!', url)
 
-  await page.close()
   return result
 }

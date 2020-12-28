@@ -1,0 +1,11 @@
+.storyStream [data-store-id]:before {
+    content: 'id=' attr(id) ', store-id=' attr(data-store-id);
+    background: lightgoldenrodyellow;
+    display: block;
+}
+
+.storyStream [data-store-id] {
+    outline: 2px dashed deepskyblue;
+    outline-offset: -2px;
+}
+
