@@ -2,7 +2,7 @@ import { SELECTORS } from './selectors'
 import { doTwoFactorAuth, isTwoFactorAuthPage } from './two-factor'
 
 let login = async (args) => {
-  const {page, user, pass, code, headless} = args
+  const {page, user, pass, headless} = args
   await page.goto('https://facebook.com', {
     waitUntil: 'networkidle2'
   })
@@ -14,7 +14,7 @@ let login = async (args) => {
   })
   await page.waitForNavigation()
   if (isTwoFactorAuthPage(page)){
-    await doTwoFactorAuth({ page, code, headless })
+    await doTwoFactorAuth({ page, headless })
   }
   console.log('Login successful!')
 }

@@ -1,18 +1,12 @@
-import puppeteer from 'puppeteer'
 import dotenv from 'dotenv-yaml'
-import yargs from 'yargs'
-import { hideBin } from 'yargs/helpers'
-import { prepareURL } from './utils/url'
 import { saveJson } from './utils/fs'
-import { login } from './fb/login'
-import { cleanupURL, isSinglePostURL } from './fb/links'
-import { disableTranslations, ensureEnglishUI } from './fb/lang'
-import { collectPosts, parsePost } from './fb'
-import { setupPage } from './fb/setupPage'
+import { makeMobile } from './fb/links'
+import { scrapeURL, setupFacebook } from './fb'
+import { parseDates } from './utils/parseDates'
+import { Log } from './utils/log'
+import { startBrowser } from './utils/browser'
 
 const config = dotenv.config()
-const argv = yargs(hideBin(process.argv)).argv
-const { code } = argv
 const {
   EMAIL: user,
   PASSWORD: pass,
@@ -20,43 +14,33 @@ const {
 const {
   OPEN_BROWSER,
   PAGES = [],
-} = config.parsed;
+  DATES
+} = config.parsed
 
-(async () => {
-  let headless = !OPEN_BROWSER
-  const browser = await puppeteer.launch({
-    headless,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox'
-    ]
-  })
-  const [page] = await browser.pages()
-
-  await login({
+;(async () => {
+  const log = Log('index.js')
+  const headless = !OPEN_BROWSER
+  const [ browser, page ] = await startBrowser(headless)
+  await setupFacebook({
     page,
     user,
     pass,
-    code,
     headless
   })
 
-  await ensureEnglishUI(page)
-  // todo only run once for user
-  // await disableTranslations(page)
-
+  const dates = parseDates(DATES)
   const results = PAGES
     .filter(url => !!url)
     .map((url) => {
-      url = prepareURL(url)
+      url = makeMobile(url)
 
       return {
         url,
-        data: scrapeURL({ url, browser })
+        data: scrapeURL({ url, browser, dates })
       }
     })
 
-  // page.close()
+  await page.close()
 
   await Promise.all(
     results.map(async (res) => {
@@ -64,45 +48,11 @@ const {
       let filename = new URL(res.url).pathname.substring(1).replace(/:\?\//, '_')
       filename = `output/${filename}.json`
 
-      console.log('DONE!', res.url, data)
+      log('DONE!', res.url, data)
 
       return saveJson({ data, filename })
     }))
 
-  // await browser.close()
+  await browser.close()
 })()
 
-async function scrapeURL(opts) {
-  const { url, browser, dateFrom, dateTo } = opts
-  console.log('scrapeURL: start scraping ', url)
-  let que = []
-  let result = []
-
-  if (isSinglePostURL(url)){
-    result.push(parsePost({ url, browser }))
-  }
-  else {
-    que = await collectPosts({ url, browser, dateTo, dateFrom })
-  }
-
-  console.log('Awaiting parsing queue')
-
-  que
-    .filter(page => !!page.url)
-    .slice(0,1)
-    .forEach(page => {
-      result.push(
-        parsePost({
-          ...page,
-          url: cleanupURL(page.url),
-          browser
-        })
-      )
-    })
-
-  result = await Promise.all(result)
-
-  console.log('Scraping page done!', url)
-
-  return result
-}

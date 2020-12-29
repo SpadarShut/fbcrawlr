@@ -1,6 +1,6 @@
 export function Log(contextFnName = '') {
   return (...args) => {
-    const label = contextFnName ? contextFnName + ': ' : ''
+    const label = contextFnName ? contextFnName + ':' : ''
     globalThis.console.log(label, ...args)
   }
 }

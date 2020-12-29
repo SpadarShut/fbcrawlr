@@ -1,18 +1,21 @@
-import { SELECTORS } from './selectors'
 import { setupPage } from './setupPage'
+import { SELECTORS } from './selectors'
+import { Log } from '../utils/log'
 
-export async function parsePost({url, browser}) {
-  console.log('Parsing ', url)
+export async function scrapePost({url, browser}) {
+  const log = Log('scrapePost')
+  log('Parsing ', url)
   const page = await browser.newPage()
   await page.goto(url, {
     waitUntil: 'networkidle2'
   })
-  console.log('Page opened', url)
+  log('Page opened', url)
   await setupPage(page)
   let result = await page.$eval(SELECTORS.postRoot, (node, {SELECTORS, url}) => {
     /* eslint-env browser */
     /* globals __ */
-    window.console.log('In page, hello from kuklavod)', window._u)
+    const log = __.Log('scrapePost in-page')
+    log('In page, hello from kuklavod)', window._u)
     let _url = new URL(url)
     try {
 
@@ -21,7 +24,8 @@ export async function parsePost({url, browser}) {
         time: node.querySelector(SELECTORS.postTime).innerText.trim(),
         // todo parse post time and date
         // todo post text
-        // todo load all comments?
+        // todo load all comments
+        // todo load comment replies
         url: _url.href,
         reactionsUrl: __.$(SELECTORS.postReactions, node).href,
         shares: __.$(SELECTORS.postShares, node)?.textContent,
@@ -33,14 +37,14 @@ export async function parsePost({url, browser}) {
       }
     }
     catch (e) {
-      console.log(e)
+      log(e)
       alert(e)
     }
   }, {SELECTORS, url})
 
   // todo process comment and post likes
 
-  console.log('Page parsing done:', url, result)
+  log('done', url, result)
 
   // await page.close()
   return result

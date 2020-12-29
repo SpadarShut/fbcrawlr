@@ -1,8 +1,10 @@
 import { SELECTORS } from './selectors'
 import { setupPage } from './setupPage'
+import { Log } from '../utils/log'
 
-export async function collectPosts({url, browser, dateTo, dateFrom}) {
-  console.log('collectPosts: ', url)
+export async function collectPosts({url, browser, dates}) {
+  const log = Log('collectPosts')
+  log(url)
   const page = await browser.newPage()
   await page.goto(url, {
     waitUntil: 'networkidle2'
@@ -13,7 +15,7 @@ export async function collectPosts({url, browser, dateTo, dateFrom}) {
   let posts = await page.$$eval(SELECTORS.feedPost, (posts, SELECTORS) => {
     /* eslint-env browser */
     /* globals __ */
-    const log = __.Log('collectPosts')
+    const log = __.Log('collectPosts in-page')
 
     log('found posts', posts.length)
     return posts.map(post => {
@@ -31,7 +33,7 @@ export async function collectPosts({url, browser, dateTo, dateFrom}) {
         res.timeScanned = new Date().getTime()
       }
       catch (e) {
-        window.console.log('Error parsing page', {time, link, error: e})
+        log('Error parsing page', {time, link, error: e})
         res.error = e.toString()
       }
       return res
@@ -40,6 +42,6 @@ export async function collectPosts({url, browser, dateTo, dateFrom}) {
 
   // todo scroll to load next batch
 
-  console.log('Page feed parsed!', page.url())
+  log('done!', page.url())
   return posts
 }

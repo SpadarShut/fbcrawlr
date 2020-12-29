@@ -25,3 +25,10 @@ export function isSinglePostURL(url) {
   ].some(fn => fn())
 }
 // photo.php?fbid=10222119341966165&id=1641428044&set=a.1526006283716&source=57
+
+export function makeMobile(_url) {
+  let url = new URL(_url, 'https://m.facebook.com')
+  url.hostname = 'm.facebook.com'
+
+  return url.href
+}
