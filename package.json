@@ -6,10 +6,16 @@
   "scripts": {
     "test": "TZ=UTC NODE_OPTIONS=--experimental-vm-modules npx jest",
     "start": "node --experimental-specifier-resolution=node src/index.js",
-    "bundle-browser-globals": "parcel build ./src/browser-globals.js --dist-dir ./build --no-source-maps"
+    "start-dev": "parcel watch src/utils/browser-globals.js --no-hmr --dist-dir=build"
   },
+  "browser": "build/browser-globals.js",
   "targets": {
-    "main": false
+    "main": false,
+    "browser": {
+      "minify": false,
+      "sourceMap": false,
+      "outputFormat": "global"
+    }
   },
   "author": "",
   "license": "ISC",

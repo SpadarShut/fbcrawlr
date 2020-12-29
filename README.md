@@ -8,6 +8,11 @@
 
   To scrape closed groups, this account needs to be a member of them.
 
-## Running
+## Running scraper
 - Add URLs to process under PAGES section in `.env.yml`
 - Run `npm start`
+
+## Development
+Run `npm run start-dev`
+
+Build is only needed if you change browser-globals.js.
