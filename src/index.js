@@ -53,6 +53,6 @@ const {
       return saveJson({ data, filename })
     }))
 
-  await browser.close()
+  // await browser.close()
 })()
 

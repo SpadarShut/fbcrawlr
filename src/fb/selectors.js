@@ -7,9 +7,9 @@ export const SELECTORS = {
   feedPost: '.storyStream > article', // [data-sigil="m-story-view"]
   reactionsMetaContainer: '[data-sigil="reactions-bling-bar"]',
   hasRepost: '[data-sigil="feed-ufi-metadata"]',
-  feedScrollDetector: '[data-sigil="marea"]',
+  feedLoadingIndicator: '.storyStream [role="progressbar"][aria-busy="true"]',
 
-  // single post page
+  // single post
   postRoot: '[data-sigil="m-story-view"]',
   postLink: '[data-sigil="feed-ufi-trigger"]',
   postTime: '[data-sigil="m-feed-voice-subtitle"] abbr',
@@ -18,4 +18,5 @@ export const SELECTORS = {
   postCommentsRoot: '[data-sigil="m-mentions-expand"]',
   postComment: '[data-sigil="comment"]',
   postCommentBody: '[data-sigil="comment-body"]',
+  postMoreLink: '[data-sigil="more"]'
 }

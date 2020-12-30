@@ -1,47 +1,75 @@
-import { SELECTORS } from './selectors'
 import { setupPage } from './setupPage'
 import { Log } from '../utils/log'
+import { parseHumanDate } from './dates'
+import { getBatch } from './scrape-feed-batch'
 
-export async function collectPosts({url, browser, dates}) {
+const MAX_RETRY_COUNT = 3
+
+export async function collectPosts({url, browser, dates = []}) {
   const log = Log('collectPosts')
   log(url)
   const page = await browser.newPage()
-  await page.goto(url, {
-    waitUntil: 'networkidle2'
-  })
-
-  await page.waitForSelector(SELECTORS.feedPost)
+  await page.goto(url, {waitUntil: 'networkidle2'})
   await setupPage(page)
-  let posts = await page.$$eval(SELECTORS.feedPost, (posts, SELECTORS) => {
-    /* eslint-env browser */
-    /* globals __ */
-    const log = __.Log('collectPosts in-page')
+  let result = new Map()
+  let endReached = false
+  let batchNumber = 0
+  let batchRetryCount = 0
 
-    log('found posts', posts.length)
-    return posts.map(post => {
-      let res = {}
+  // todo what if dates not passed ?
+  const [minDate, maxDate] = dates
 
-      // log('post', post)
-      const link = post.querySelector(SELECTORS.postLink)
-      const time = post.querySelector(SELECTORS.postTime)
-      try {
-        let timeRawText = time.innerText.trim()
+  while (!endReached) {
+    let rawPosts = await getBatch(page, !!batchNumber)
 
-        res.url = link.href
-        // res.time = timeUTC
-        res.timeRawText = timeRawText
-        res.timeScanned = new Date().getTime()
+    batchNumber++
+
+    if (!rawPosts.length) {
+      if (batchRetryCount < MAX_RETRY_COUNT){
+        console.log(`Batch ${batchNumber - 1} returned 0 posts, will retry`)
+        batchRetryCount++
       }
-      catch (e) {
-        log('Error parsing page', {time, link, error: e})
-        res.error = e.toString()
+      else {
+        endReached = true // use maxRetriesReached ?
       }
-      return res
+      continue
+    }
+
+    batchRetryCount = 0
+    log(`batch ${batchNumber} received with ${rawPosts.length} posts`)
+
+    rawPosts.some((post) => {
+      if (
+        post.error ||
+        post.rawTime.toLowerCase().startsWith('sponsored')
+      ) {
+        return
+      }
+
+      const {id, rawTime, url} = post
+      const time = parseHumanDate(rawTime)
+
+      if (!time) {
+        console.log('Couldn\'t parse post time', url)
+        return
+      }
+
+      if (time < new Date(minDate)) {
+        endReached = true
+        return true
+      }
+      if (maxDate && new Date(maxDate) < time){
+        return
+      }
+      if (!result.has(id)) {
+        post.time = time
+        result.set(id, post)
+      }
     })
-  }, SELECTORS)
+  }
 
-  // todo scroll to load next batch
+  let vals = result.values()
 
-  log('done!', page.url())
-  return posts
+  log('done!', url, vals)
+  return Array.from(vals)
 }

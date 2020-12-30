@@ -32,3 +32,17 @@ export function makeMobile(_url) {
 
   return url.href
 }
+
+function getUidFromLink(url = '') {
+  let match = url.match(/\/permalink\/(\d+)/)
+  if (match){
+    return match[1]
+  }
+
+  const {pathname, searchParams} = new URL(url)
+
+  // story_fbid
+  if (searchParams.has('fbid')) {
+
+  }
+}

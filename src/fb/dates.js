@@ -1,4 +1,5 @@
-import { parse, getDay, sub, subDays } from 'date-fns'
+import fns from 'date-fns'
+const { parse, getDay, sub, subDays } = fns
 
 export {
   parseHumanDate,
@@ -26,6 +27,10 @@ const formats = [
   [
     /(\d+)\shrs?/i,
     (str, match, ref) => sub(ref, {hours: match[1]})
+  ],
+  [
+    /(\d+)\smos?/i,
+    (str, match, ref) => sub(ref, {months: match[1]})
   ],
   [
     /on\s(\w+)/i,
@@ -60,20 +65,23 @@ const formats = [
   ]
 ]
 
-function parseHumanDate(str, referenceDate = new Date()) {
+function parseHumanDate(dateString, referenceDate = new Date()) {
+  if (!dateString){
+    throw new Error('First argument must be a string')
+  }
   let date = null
 
   formats.find(([regex, resolver]) => {
-    let match = str.match(regex)
+    let match = dateString.match(regex)
 
     if (match) {
       let ref  = new Date(referenceDate)
       // let ref = referenceDate
       if (typeof resolver === 'function') {
-        date = resolver(str, match, ref)
+        date = resolver(dateString, match, ref)
       }
       else if (typeof resolver === 'string') {
-        date = parse(str, resolver, ref)
+        date = parse(dateString, resolver, ref)
       }
       else {
         throw new Error(`parseHumanDate: resolver missing for ${regex}`)

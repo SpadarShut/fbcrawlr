@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "TZ=UTC NODE_OPTIONS=--experimental-vm-modules npx jest",
-    "start": "node --experimental-specifier-resolution=node src/index.js",
+    "start": "node --experimental-specifier-resolution=node --trace-warnings src/index.js",
     "start-dev": "parcel watch src/utils/browser-globals.js --no-hmr --dist-dir=build"
   },
   "browser": "build/browser-globals.js",
@@ -14,7 +14,8 @@
     "browser": {
       "minify": false,
       "sourceMap": false,
-      "outputFormat": "global"
+      "outputFormat": "global",
+      "includeNodeModules": true
     }
   },
   "author": "",

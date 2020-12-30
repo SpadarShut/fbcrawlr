@@ -21,13 +21,13 @@ export async function scrapeURL(opts) {
   log('Awaiting parsing queue')
 
   que
-    .filter(page => !!page.url)
-    .slice(0, 1)
-    .forEach(page => {
+    .filter(post => !!post.url)
+    .slice(0, 10)
+    .forEach(post => {
       result.push(
         scrapePost({
-          ...page,
-          url: cleanupURL(page.url),
+          ...post,
+          url: cleanupURL(post.url),
           browser
         })
       )

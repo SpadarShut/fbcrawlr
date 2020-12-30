@@ -16,7 +16,7 @@ export async function setupFacebook(props) {
     headless
   })
 
-  await ensureEnglishUI(page)
   // todo only run once for user
-  await disableTranslations(page)
+  // await ensureEnglishUI(page)
+  // await disableTranslations(page)
 }

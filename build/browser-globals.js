@@ -131,24 +131,17 @@
       this[globalName] = mainExports;
     }
   }
-})({"718bc53c07dfaad6fb25450ab93e9b92":[function(require,module,exports) {
+})({"ae279a62d6699cbcfbcb300b7dac0546":[function(require,module,exports) {
 "use strict";
-
-var _dates = require("../fb/dates");
 
 var _log = require("./log");
 
-/*
- This file is used to inject globals on webpages,
- so it needs to be bundled before use.
- If you change this file, make sure to rebuild it using
-`npm run bundle-browser-globals`
-*/
+var _selectors = require("../fb/selectors");
 
 /* eslint-env browser */
 let __ = {
   Log: _log.Log,
-  parseHumanDate: _dates.parseHumanDate,
+  SELECTORS: _selectors.SELECTORS,
   $: function (selector, startNode) {
     return window.document.querySelector(selector, startNode);
   },
@@ -157,53 +150,7 @@ let __ = {
   }
 };
 window.__ = __;
-},{"../fb/dates":"9a982923b93f4596ff426c79555791f8","./log":"2728623b0d739e1a925fdffdc80537cf"}],"9a982923b93f4596ff426c79555791f8":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.parseHumanDate = parseHumanDate;
-
-var _dateFns = require("date-fns");
-
-const weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-const formats = [[/just now/i, (str, match, ref) => ref], [/(\d+)\smins?/i, (str, match, ref) => (0, _dateFns.sub)(ref, {
-  minutes: match[1]
-})], [/(\d+)\shrs?/i, (str, match, ref) => (0, _dateFns.sub)(ref, {
-  hours: match[1]
-})], [/on\s(\w+)/i, (str, match, ref) => {
-  let targetDay = weekDays.findIndex(day => day.startsWith(match[1].toLowerCase()));
-  let today = (0, _dateFns.getDay)(ref);
-  let absDelta = Math.abs(today - targetDay);
-  let delta = targetDay >= today ? 7 - absDelta : absDelta;
-  return (0, _dateFns.subDays)(ref, delta);
-}], [/yesterday\sat\s(\d+):(\d+)\s(am|pm)/i, (str, match, ref) => (0, _dateFns.parse)(str.toLowerCase(), '\'yesterday at \'h:mm aa', (0, _dateFns.subDays)(ref, 1))], [// December 21 at 4:24 PM
-/(\w)\s(\d+)\sat\s(\d+):(\d+)\s(am|pm)/i, 'MMMM d \'at\' h:mm aa'], [// December 16, 2018 at 4:24 PM
-/(\w)\s(\d+),\s(\d+)\sat\s(\d+):(\d+)\s(am|pm)/i, 'MMMM d, y \'at\' h:mm aa']];
-
-function parseHumanDate(str, referenceDate = new Date()) {
-  let date = null;
-  formats.find(([regex, resolver]) => {
-    let match = str.match(regex);
-
-    if (match) {
-      let ref = new Date(referenceDate); // let ref = referenceDate
-
-      if (typeof resolver === 'function') {
-        date = resolver(str, match, ref);
-      } else if (typeof resolver === 'string') {
-        date = (0, _dateFns.parse)(str, resolver, ref);
-      } else {
-        throw new Error(`parseHumanDate: resolver missing for ${regex}`);
-      }
-
-      return true;
-    }
-  });
-  return date;
-}
-},{}],"2728623b0d739e1a925fdffdc80537cf":[function(require,module,exports) {
+},{"./log":"2a89955314a5bf5f07500ea96066b21c","../fb/selectors":"9afa8797f45501d3b745d59e03a49023"}],"2a89955314a5bf5f07500ea96066b21c":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -217,6 +164,36 @@ function Log(contextFnName = '') {
     globalThis.console.log(label, ...args);
   };
 }
-},{}]},{},["718bc53c07dfaad6fb25450ab93e9b92"], null)
+},{}],"9afa8797f45501d3b745d59e03a49023":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SELECTORS = void 0;
+const SELECTORS = {
+  login: '#email',
+  pass: '#pass',
+  twoFactorCodeInput: '#approvals_code',
+  checkpointSubmit: '#checkpointSubmitButton',
+  postsContainer: '.storyStream',
+  feedPost: '.storyStream > article',
+  // [data-sigil="m-story-view"]
+  reactionsMetaContainer: '[data-sigil="reactions-bling-bar"]',
+  hasRepost: '[data-sigil="feed-ufi-metadata"]',
+  feedLoadingIndicator: '.storyStream [role="progressbar"][aria-busy="true"]',
+  // single post
+  postRoot: '[data-sigil="m-story-view"]',
+  postLink: '[data-sigil="feed-ufi-trigger"]',
+  postTime: '[data-sigil="m-feed-voice-subtitle"] abbr',
+  postShares: '[data-sigil="feed-ufi-sharers"]',
+  postReactions: 'a[href*="ufi/reaction"]',
+  postCommentsRoot: '[data-sigil="m-mentions-expand"]',
+  postComment: '[data-sigil="comment"]',
+  postCommentBody: '[data-sigil="comment-body"]',
+  postMoreLink: '[data-sigil="more"]'
+};
+exports.SELECTORS = SELECTORS;
+},{}]},{},["ae279a62d6699cbcfbcb300b7dac0546"], null)
 
 //# sourceMappingURL=browser-globals.js.map
