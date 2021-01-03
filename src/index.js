@@ -7,28 +7,38 @@ import { Log } from './utils/log'
 import { startBrowser } from './utils/browser'
 
 const config = dotenv.config()
+
 const {
-  EMAIL: user,
-  PASSWORD: pass,
+  EMAIL,
+  PASSWORD,
 } = process.env
+
 const {
   OPEN_BROWSER,
   PAGES = [],
-  DATES
+  DATES,
+  OUTPUT_DIR
 } = config.parsed
 
 ;(async () => {
   const log = Log('index.js')
   const headless = !OPEN_BROWSER
   const [ browser, page ] = await startBrowser(headless)
+
   await setupFacebook({
     page,
-    user,
-    pass,
+    user: EMAIL,
+    pass: PASSWORD,
     headless
   })
 
+  // await page.close()
+
   const dates = parseDates(DATES)
+  if (!dates) {
+    throw new Error('Invalid DATES parameter')
+  }
+
   const results = PAGES
     .filter(url => !!url)
     .map((url) => {
@@ -40,18 +50,28 @@ const {
       }
     })
 
-  await page.close()
 
   await Promise.all(
     results.map(async (res) => {
       let data = await res.data
-      let filename = new URL(res.url).pathname.substring(1).replace(/:\?\//, '_')
-      filename = `output/${filename}.json`
+      let filename = new URL(res.url).pathname
+      // trim slashes at beginning and end
+      filename = filename.replace(/(^\/|\/$)/g, '')
+      // replace illegal filename characters
+      filename = filename.replace(/[/\\?%*:|"<>]/g, '_')
+      filename += '.json'
+      filename = `${OUTPUT_DIR || 'output'}/${filename}`
 
       log('DONE!', res.url, data)
 
-      return saveJson({ data, filename })
-    }))
+      try {
+        return saveJson({ data, filename })
+      }
+      catch (e) {
+        log('Error saving file', filename)
+      }
+    })
+  )
 
   // await browser.close()
 })()

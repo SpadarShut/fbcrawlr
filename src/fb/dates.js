@@ -67,7 +67,7 @@ const formats = [
 
 function parseHumanDate(dateString, referenceDate = new Date()) {
   if (!dateString){
-    throw new Error('First argument must be a string')
+    return null
   }
   let date = null
 

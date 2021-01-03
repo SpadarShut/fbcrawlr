@@ -7,10 +7,12 @@ let __ = {
   Log,
   SELECTORS,
   $: function (selector, startNode) {
-    return window.document.querySelector(selector, startNode)
+    return (startNode || document).querySelector(selector)
   },
   $$: function (selector, startNode) {
-    return Array.from(window.document.querySelectorAll(selector, startNode))
+    return Array.from(
+      (startNode || document).querySelectorAll(selector)
+    )
   }
 }
 

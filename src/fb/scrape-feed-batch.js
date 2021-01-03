@@ -1,36 +1,26 @@
 import { Log } from '../utils/log'
-import { SELECTORS } from './selectors'
 
-export async function getBatch(page, loadMore) {
-  const log = Log('getBatch')
+export async function getBatch(page) {
+  await triggerLoadingBatch(page)
+  return scrapePage(page)
+}
+
+async function scrapePage(page) {
+  const log = Log('scrapePage')
   log('start')
 
-  if (loadMore) {
-    await scrollToBottom(page)
-  }
-  else {
-    log('waitForSelector(SELECTORS.feedPost)')
-    await page.waitForSelector(SELECTORS.feedPost)
-  }
-
-  await page.waitForRequest(async () => {
-    await scrollToBottom(page)
-  })
-
-  return await page.evaluate(() => {
+  return page.evaluate(() => {
     /* eslint-env browser */
     /* globals __ */
     const {$$, Log, SELECTORS} = __
     // save nodes processed between batches
-    let nodesProcessed = __.nodesProcessed || new WeakMap()
+    const nodesProcessed = __.nodesProcessed || new WeakMap()
     __.nodesProcessed = nodesProcessed
     const resBatch = []
     const log = Log('collectPosts in-page')
-    log('start')
+    const posts = $$(SELECTORS.feedPost)
 
-    let posts = $$(SELECTORS.feedPost)
-
-    console.log(`total ${posts.length} posts on page`)
+    log(`total ${posts.length} posts on page`)
 
     posts.forEach((node) => {
       if (nodesProcessed.has(node)) {
@@ -50,9 +40,12 @@ export async function getBatch(page, loadMore) {
       if (!resBatch[id]) {
         resBatch[id] = scrapeFeedItem(node, id)
       }
+      else {
+        log('ID already scraped', id)
+      }
     })
 
-    console.log(`${Object.keys(resBatch).length} posts in batch`)
+    log(`Done. ${Object.keys(resBatch).length} posts in batch`)
 
     return Object.values(resBatch)
 
@@ -77,10 +70,29 @@ export async function getBatch(page, loadMore) {
   })
 }
 
-async function scrollToBottom(page) {
-  Log()('scrollToBottom')
-  await page.evaluate(() => {
-    const html = document.documentElement
-    html.scrollTop = html.scrollHeight
+export async function triggerLoadingBatch(page) {
+  return page.evaluate(() => {
+    __.Log('triggerLoadingBatch')('start')
+    return new Promise((resolve, reject) => {
+      let html = document.documentElement
+
+      html.scrollTop = html.scrollHeight
+      let timerId = setInterval(() => {
+        if (html.scrollHeight - html.scrollTop > 300) {
+          cleanup()
+          resolve(html.scrollHeight)
+        }
+      }, 1000)
+
+      let timeoutId = setTimeout(() => {
+        cleanup()
+        reject('Aborted waiting for new content after 20 seconds')
+      }, 20000)
+
+      function cleanup() {
+        clearInterval(timerId)
+        clearTimeout(timeoutId)
+      }
+    })
   })
 }

@@ -14,24 +14,23 @@ export async function scrapePost({url, browser}) {
   let result = await page.$eval(SELECTORS.postRoot, (node, {SELECTORS, url}) => {
     /* eslint-env browser */
     /* globals __ */
-    const log = __.Log('scrapePost in-page')
-    log('In page, hello from kuklavod)', window._u)
+    const { Log, $, $$ } = __
+    const log = Log('scrapePost in-page')
     let _url = new URL(url)
     try {
-
       return {
         timeScanned: new Date().getTime(),
-        time: node.querySelector(SELECTORS.postTime).innerText.trim(),
+        rawTime: node.querySelector(SELECTORS.postTime).innerText.trim(),
         // todo parse post time and date
         // todo post text
         // todo load all comments
         // todo load comment replies
         url: _url.href,
-        reactionsUrl: __.$(SELECTORS.postReactions, node).href,
-        shares: __.$(SELECTORS.postShares, node)?.textContent,
-        comments: __.$$(SELECTORS.postComment, node).map((comm) => ({
-          text: __.$(SELECTORS.postCommentBody, comm).innerText,
-          reactionsUrl: __.$(SELECTORS.postReactions, comm).href,
+        reactionsUrl: $(SELECTORS.postReactions, node).href,
+        shares: $(SELECTORS.postShares, node)?.textContent,
+        comments: $$(SELECTORS.postComment, node).map((comm) => ({
+          text: $(SELECTORS.postCommentBody, comm).innerText,
+          reactionsUrl: $(SELECTORS.postReactions, comm).href,
           id: comm.dataset.uniqueid
         })),
       }
@@ -46,6 +45,6 @@ export async function scrapePost({url, browser}) {
 
   log('done', url, result)
 
-  // await page.close()
+  await page.close()
   return result
 }

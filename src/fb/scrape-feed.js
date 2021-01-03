@@ -11,6 +11,7 @@ export async function collectPosts({url, browser, dates = []}) {
   const page = await browser.newPage()
   await page.goto(url, {waitUntil: 'networkidle2'})
   await setupPage(page)
+
   let result = new Map()
   let endReached = false
   let batchNumber = 0
@@ -20,56 +21,105 @@ export async function collectPosts({url, browser, dates = []}) {
   const [minDate, maxDate] = dates
 
   while (!endReached) {
+    let log = Log(`${url}, batch #${batchNumber + 1}`)
     let rawPosts = await getBatch(page, !!batchNumber)
+    let batchSize = rawPosts.length
 
     batchNumber++
 
-    if (!rawPosts.length) {
+    if (!batchSize) {
+      if (batchRetryCount === MAX_RETRY_COUNT - 1){
+        log('waiting before last retry')
+        await page.waitForTimeout(5000)
+      }
       if (batchRetryCount < MAX_RETRY_COUNT){
-        console.log(`Batch ${batchNumber - 1} returned 0 posts, will retry`)
         batchRetryCount++
+        log(`Batch ${batchNumber} returned 0 posts, will retry, #${batchRetryCount}`)
       }
       else {
+        log(`Abort scraping ${url}. Batch returned 0 posts ${MAX_RETRY_COUNT} times.`)
         endReached = true // use maxRetriesReached ?
       }
       continue
     }
 
     batchRetryCount = 0
-    log(`batch ${batchNumber} received with ${rawPosts.length} posts`)
+    log(`batch ${batchNumber} received with ${batchSize} posts`)
 
-    rawPosts.some((post) => {
-      if (
-        post.error ||
-        post.rawTime.toLowerCase().startsWith('sponsored')
-      ) {
-        return
-      }
+    let tooOldPostsCount = 0
+    let tooNewPostsCount = 0
+    let sponsoredCount = 0
+    let evaluationErrorCount = 0
+    let timeParingErrorCount = 0
+    let processedCount = 0
 
-      const {id, rawTime, url} = post
-      const time = parseHumanDate(rawTime)
+    const filteredPosts = rawPosts
+      .map((post) => ({
+        ...post,
+        date: parseHumanDate(post.rawTime),
+        sponsored: post.rawTime.search(/sponsored/i) > -1
+      }))
+      .filter(({date, error, id, sponsored}) => {
+        let postTooOld = date < new Date(minDate)
+        let postTooNew = maxDate && (new Date(maxDate) < date)
+        let postAlreadyProcessed = result.has(id)
 
-      if (!time) {
-        console.log('Couldn\'t parse post time', url)
-        return
-      }
+        sponsoredCount += sponsored
+        evaluationErrorCount += !!error
+        timeParingErrorCount += !date
+        tooOldPostsCount += postTooOld
+        tooNewPostsCount += postTooNew
+        processedCount += postAlreadyProcessed
 
-      if (time < new Date(minDate)) {
-        endReached = true
+        if (!date || error || sponsored || postTooOld || postTooNew || postAlreadyProcessed) {
+          return
+        }
+
         return true
-      }
-      if (maxDate && new Date(maxDate) < time){
-        return
-      }
-      if (!result.has(id)) {
-        post.time = time
-        result.set(id, post)
-      }
+      })
+
+    let allBatchIsTooNew = batchSize === tooNewPostsCount + sponsoredCount
+    let allBatchIsTooOld = batchSize === tooOldPostsCount + sponsoredCount
+    let allBatchIsBroken = batchSize === timeParingErrorCount + sponsoredCount
+
+    log(
+      'BATCH STATS:',
+      Object
+        .entries({
+          good: filteredPosts.length,
+          tooOld: tooOldPostsCount,
+          tooNew: tooNewPostsCount,
+          ads: sponsoredCount,
+          err: evaluationErrorCount,
+          timeErr: timeParingErrorCount,
+          dupe: processedCount,
+        })
+        .filter(([,v]) => !!v)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ')
+    )
+
+    if (allBatchIsTooOld) {
+      log('End of requested period reached.')
+    }
+    if (allBatchIsBroken) {
+      log('Something\'s wrong with parsing feed, aborting')
+    }
+    if (allBatchIsTooOld || allBatchIsBroken){
+      log('')
+      endReached = true
+    }
+
+    filteredPosts.forEach((post) => {
+      result.set(post.id, post)
     })
+
+    log('Total good:', result.size)
   }
 
-  let vals = result.values()
+  let vals = Array.from(result.values())
 
-  log('done!', url, vals)
-  return Array.from(vals)
+  log(`done! Found ${vals.length} posts`)
+
+  return vals
 }

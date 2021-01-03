@@ -7,7 +7,10 @@ export const SELECTORS = {
   feedPost: '.storyStream > article', // [data-sigil="m-story-view"]
   reactionsMetaContainer: '[data-sigil="reactions-bling-bar"]',
   hasRepost: '[data-sigil="feed-ufi-metadata"]',
-  feedLoadingIndicator: '.storyStream [role="progressbar"][aria-busy="true"]',
+  feedLoadingIndicator: `
+    .storyStream ~ * [role="progressbar"][aria-busy="true"],
+    .storyStream ~ * [data-sigil ~= "m-loading-indicator-root"]
+  `,
 
   // single post
   postRoot: '[data-sigil="m-story-view"]',
