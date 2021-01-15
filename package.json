@@ -33,6 +33,9 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
-    "eslint": "^7.15.0"
+    "@babel/core": "^7.12.10",
+    "@babel/eslint-parser": "^7.12.1",
+    "@babel/plugin-syntax-top-level-await": "^7.12.1",
+    "eslint": "^7.17.0"
   }
 }
