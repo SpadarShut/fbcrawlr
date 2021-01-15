@@ -1,17 +1,16 @@
 import dateFns from 'date-fns'
+
 const { isValid } = dateFns
 
 export function parseDates(dates) {
-  const isRange = Array.isArray(dates)
-  let _dates = !isRange ? [dates] : dates
+  let _dates = Array.isArray(dates) ? dates : [dates]
+  _dates = _dates.map(parseDate)
 
   if (_dates.some((date) => !isValid(date))) {
     return null
   }
 
-  return _dates
-    .map(parseDate)
-    .sort()
+  return _dates.sort((a, b) => a - b)
 }
 
 function parseDate(str = '') {
@@ -20,6 +19,5 @@ function parseDate(str = '') {
   let parts = [year, month, date]
     .filter((part) => part !== undefined)
 
-  let date1 = new Date(...parts)
-  return date1
+  return new Date(...parts)
 }

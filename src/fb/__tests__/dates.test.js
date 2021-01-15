@@ -1,7 +1,7 @@
 import { parseHumanDate } from '../dates'
 
 test('parseHumanDate', () => {
-  const referenceDate = new Date(Date.UTC(2020, 11, 25, 12, 0, 0, 0));
+  const referenceDate = new Date(Date.UTC(2020, 11, 25, 12, 0, 0, 0))
 
   expect(
     referenceDate.toISOString()
