@@ -27,6 +27,7 @@
             "error",
             "unix"
         ],
+        "curly": ["warn"],
         "brace-style": ["warn", "stroustrup"],
         "quotes": [
             "error",
