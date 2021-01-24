@@ -1,42 +1,35 @@
 import dotenv from 'dotenv-yaml'
 import { makeValidFilename, saveJson } from './utils/fs'
 import { makeMobile } from './fb/links'
-import { scrapeURL, setupFacebook } from './fb'
+import { scrapeURL } from './fb'
 import { parseDates } from './utils/parseDates'
 import { Log } from './utils/log'
-import { getBrowserInstance } from './utils/browser'
+import { getBrowserAndSetupFB } from './utils/fb'
 
-const config = dotenv.config()
+console.log('SCRAPING BEGIN')
 
-const {
-  EMAIL,
-  PASSWORD,
-} = process.env
+const config = dotenv.config().parsed
 
 const {
-  OPEN_BROWSER,
   PAGES = [],
   DATES,
-  OUTPUT_DIR
-} = config.parsed
-
-const log = Log('index.js')
-const headless = !OPEN_BROWSER
-const browser = await getBrowserInstance({headless})
-
-await setupFacebook({
-  page: await browser.newPage(),
-  user: EMAIL,
-  pass: PASSWORD,
-  headless
-})
-
-// await page.close()
+  OUTPUT_DIR,
+  CLOSE_BROWSER_WHEN_DONE
+} = config
 
 const dates = parseDates(DATES)
 if (!dates) {
+  // todo check if all dates are in future
   throw new Error('Invalid DATES parameter')
 }
+
+if (!PAGES) {
+  throw new Error('Provide pages to scrape in .env.yml')
+}
+
+const browser = await getBrowserAndSetupFB()
+
+const log = Log('index.js')
 
 const results = PAGES
   .filter(url => !!url)
@@ -45,14 +38,18 @@ const results = PAGES
 
     return {
       url,
-      data: scrapeURL({ url, browser, dates })
+      data: scrapeURL({url, browser, dates})
     }
   })
 
-
-await Promise.all(
+await Promise.allSettled(
   results.map(async (res) => {
-    let data = await res.data
+    let result = await res.data
+    let data = result
+      .map(({status, value, reason}) => {
+        return status === 'fulfilled' ? value : { error: reason }
+      })
+
     let url = new URL(res.url)
     let filename = url.pathname + url.search
     // trim slashes at beginning and end
@@ -73,5 +70,9 @@ await Promise.all(
   })
 )
 
-// await browser.close()
+console.log('ALL SCRAPING DONE')
+
+if (CLOSE_BROWSER_WHEN_DONE) {
+  await browser.close()
+}
 

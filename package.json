@@ -4,9 +4,9 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "npm run start-server && npm run start-scraping",
-    "start-server": "node --experimental-specifier-resolution=node --trace-warnings src/server",
-    "start-scraping": "node --experimental-specifier-resolution=node src",
+    "start": "npm run start-server & npm run start-scraping",
+    "start-server": "node --experimental-specifier-resolution=node -r dotenv-yaml/config src/server",
+    "start-scraping": "node --experimental-specifier-resolution=node -r dotenv-yaml/config src",
     "start-dev": "parcel watch src/utils/browser-globals.js --no-hmr --dist-dir=build",
     "test": "TZ=UTC NODE_OPTIONS=--experimental-vm-modules npx jest"
   },
@@ -42,5 +42,8 @@
     "@babel/eslint-parser": "^7.12.1",
     "@babel/plugin-syntax-top-level-await": "^7.12.1",
     "eslint": "^7.17.0"
+  },
+  "engines" : {
+    "node" : ">=14.8.0"
   }
 }

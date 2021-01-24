@@ -5,7 +5,7 @@ export {
   makeValidFilename
 }
 
-function saveJson({filename, data}) {
+async function saveJson({filename, data}) {
   let posts = ''
   try {
     posts = JSON.stringify(data, null, 2)

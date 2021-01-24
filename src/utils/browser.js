@@ -1,34 +1,46 @@
-// import puppeteer from 'puppeteer'
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import fetch from 'node-fetch'
+import { sleep } from './async'
 
-puppeteer.use(StealthPlugin())
+export {
+  getBrowserInstance,
+  shouldBrowserStartHeadless,
+  startBrowser,
+  waitForTabsLimit,
+  isTabLimitReached,
+}
 
-export async function startBrowser(options = {}) {
-  let env_headless = process.env.OPEN_BROWSER !== 'False'
+const {
+  SERVER_PORT,
+  OPEN_BROWSER,
+  MAX_OPEN_TABS,
+  TAB_OPEN_INTERVAL
+} = process.env
 
+async function startBrowser(options = {}) {
   let {
-    headless = env_headless
+    headless = shouldBrowserStartHeadless(options.headless)
   } = options
 
-  const browser = await puppeteer.launch({
+  puppeteer.use(StealthPlugin())
+  return puppeteer.launch({
     headless,
     args: [
       '--no-sandbox',
-      '--disable-setuid-sandbox'
+      '--disable-setuid-sandbox',
+      '--lang=en'
     ]
   })
-
-  return browser
 }
 
 let browser
-export async function getBrowserInstance() {
-  let browserWSEndpoint
 
+async function getBrowserInstance() {
+  let browserWSEndpoint
   try {
-    browserWSEndpoint = await fetch(`http://localhost:${process.env.SERVER_PORT}/browser/ws`).then(r => r.text())
+    let url = `http://localhost:${SERVER_PORT}/browser/ws`
+    browserWSEndpoint = await fetch(url).then(r => r.text())
     browser = await puppeteer.connect({ browserWSEndpoint })
   }
   catch (e) {
@@ -39,4 +51,30 @@ export async function getBrowserInstance() {
   }
 
   return browser
+}
+
+function shouldBrowserStartHeadless(headless) {
+  if (headless !== undefined) {
+    return Boolean(headless)
+  }
+  return ['False', '0'].includes(OPEN_BROWSER)
+}
+
+let callQueue = 0
+async function waitForTabsLimit() {
+  let interval = TAB_OPEN_INTERVAL || 2000
+  await sleep(callQueue++ * interval)
+  while (await isTabLimitReached()) {
+    await sleep(interval)
+  }
+  callQueue--
+}
+
+async function isTabLimitReached(){
+  const browser = await getBrowserInstance()
+  const pages = await browser.pages()
+  const FBTabs = pages.filter(p => p.url().includes('facebook.com')).length
+  const reached = FBTabs >= (MAX_OPEN_TABS || 8)
+
+  return reached
 }
