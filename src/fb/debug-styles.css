@@ -1,11 +1,31 @@
-.storyStream [data-store-id]:before {
-    content: 'id=' attr(id) ', store-id=' attr(data-store-id);
-    background: lightgoldenrodyellow;
-    display: block;
+/*[data-sigil]:before {*/
+/*    content: 'data-sigil=' attr(id);*/
+/*    background: lightgoldenrodyellow;*/
+/*    display: block;*/
+/*    padding: 2px;*/
+/*    font-size: 10px;*/
+/*}*/
+
+[role] {
+    --debug-color: #8a0187;
+    outline: 1px dotted var(--debug-color);
+    position: relative;
+}
+[role]:after {
+    content: "role=" attr(role);
+    background: var(--debug-color);
+    color: #fff;
+    position: absolute;
+    font-size: 9px;
+    line-height: 1;
+    padding: 1px;
+    z-index: 10;
+    opacity: .7;
+    top: 0;
+    left: 0;
 }
 
-.storyStream [data-store-id] {
-    outline: 2px dashed deepskyblue;
-    outline-offset: -2px;
+[role]:after:hover {
+    opacity: 1;
 }
 

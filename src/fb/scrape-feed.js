@@ -2,12 +2,15 @@ import { setupPage } from './setupPage'
 import { Log } from '../utils/log'
 import { parseHumanDate } from './dates'
 import { getBatch } from './scrape-feed-batch'
+import { waitForTabsLimit } from '../utils/browser'
 
 const MAX_RETRY_COUNT = 3
 
 export async function collectPosts({url, browser, dates = []}) {
   const log = Log('collectPosts')
-  log(url)
+  log('waiting for tab', url)
+  await waitForTabsLimit()
+  log('go', url)
   const page = await browser.newPage()
   await page.goto(url, {waitUntil: 'networkidle2'})
   await setupPage(page)
@@ -78,7 +81,7 @@ export async function collectPosts({url, browser, dates = []}) {
         return true
       })
 
-    let allBatchIsTooNew = batchSize === tooNewPostsCount + sponsoredCount
+    // let allBatchIsTooNew = batchSize === tooNewPostsCount + sponsoredCount
     let allBatchIsTooOld = batchSize === tooOldPostsCount + sponsoredCount
     let allBatchIsBroken = batchSize === timeParingErrorCount + sponsoredCount
 
@@ -106,7 +109,6 @@ export async function collectPosts({url, browser, dates = []}) {
       log('Something\'s wrong with parsing feed, aborting')
     }
     if (allBatchIsTooOld || allBatchIsBroken){
-      log('')
       endReached = true
     }
 
@@ -121,5 +123,6 @@ export async function collectPosts({url, browser, dates = []}) {
 
   log(`done! Found ${vals.length} posts`)
 
+  await page.close()
   return vals
 }

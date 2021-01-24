@@ -22,7 +22,6 @@ export async function scrapeURL(opts) {
 
   que
     .filter(post => !!post.url)
-    .slice(0, 10)
     .forEach(post => {
       result.push(
         scrapePost({
@@ -33,7 +32,7 @@ export async function scrapeURL(opts) {
       )
     })
 
-  result = await Promise.all(result)
+  result = await Promise.allSettled(result)
 
   log('done!', url)
 
