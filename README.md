@@ -1,10 +1,9 @@
 ## Setup
 - Install [node.js](https://nodejs.org/en/) v14.8 or newer.
-  Or run scripts with --harmony-top-level-await node flag
-- run `npm i`
+  Or run scripts with ``--harmony-top-level-await` node flag
+- In repository directory run `npm i`
 - Copy `.env.yml.example` to `.env.yml`
-- Create a new throwaway email account for scraping, as it may be blocked by Facebook.
-- Register new Facebook account with the new email.
+- Register a new Facebook account with the new email as it may be blocked by Facebook..
 - Add Facebook email and password in `.env.yml`.
 
 
@@ -14,10 +13,16 @@
 
 
 ## Running scraper
-- Add URLs to facebook groups or posts to process under PAGES section in `.env.yml`
-- Run command:
-  npm run start-scraping
+- In `.env.yml` under `PAGES` section add URLs to facebook groups or posts to process
+- Under `DATES` section set needed post dates
+- Run command: `npm run start-server`.
+
+  This will open a new browser which remember your facebook login state.
+
+  This step may be skipped if you are going to run scraping only once.
+- Open new console and run: `npm run start-scraping`
 - See output JSON data in the `output` directory
+
 
 
 ## Development
