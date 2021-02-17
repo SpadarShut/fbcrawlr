@@ -2,19 +2,27 @@
   "name": "fbcrawlr",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
   "scripts": {
     "start": "npm run start-server & npm run start-scraping",
-    "start-server": "node --experimental-specifier-resolution=node -r dotenv-yaml/config src/server",
-    "start-scraping": "node --experimental-specifier-resolution=node -r dotenv-yaml/config src",
+    "start-server": "node --harmony-top-level-await --experimental-specifier-resolution=node -r dotenv-yaml/config src/server",
+    "start-scraping": "node --harmony-top-level-await --experimental-specifier-resolution=node -r dotenv-yaml/config src",
     "start-dev": "parcel watch src/utils/browser-globals.js --no-hmr --dist-dir=build",
+    "build:node": "parcel src/index.js --no-hmr",
     "test": "TZ=UTC NODE_OPTIONS=--experimental-vm-modules npx jest"
   },
-  "browser": "build/browser-globals.js",
+  "app": "./build/index.js",
+  "browser": "./build/browser-globals.js",
   "targets": {
-    "main": false,
+    "app": {
+      "context": "node",
+      "sourceMap": false,
+      "includeNodeModules": false,
+      "scopeHoist": true,
+      "optimize": false,
+      "isLibrary": true,
+      "distDir": "./build/node"
+    },
     "browser": {
-      "minify": false,
       "sourceMap": false,
       "outputFormat": "global",
       "includeNodeModules": true
@@ -31,19 +39,20 @@
     "jest": "^26.6.3",
     "koa": "^2.13.1",
     "node-fetch": "^2.6.1",
-    "parcel": "^2.0.0-beta.1",
-    "puppeteer": "^5.5.0",
-    "puppeteer-extra": "^3.1.15",
-    "puppeteer-extra-plugin-stealth": "^2.6.5",
+    "parcel": "^2.0.0-nightly.574",
+    "puppeteer": "^7.0.1",
+    "puppeteer-extra": "^3.1.16",
+    "puppeteer-extra-plugin-stealth": "^2.7.4",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/eslint-parser": "^7.12.1",
     "@babel/plugin-syntax-top-level-await": "^7.12.1",
+    "@babel/preset-env": "^7.12.13",
     "eslint": "^7.17.0"
   },
-  "engines" : {
-    "node" : ">=14.8.0"
+  "engines": {
+    "node": ">=13.12.0"
   }
 }

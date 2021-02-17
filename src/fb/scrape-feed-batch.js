@@ -33,15 +33,15 @@ async function scrapePage(page) {
         id = JSON.parse(node.dataset.store).share_id
       }
       catch (e) {
-        log('ERROR parsing feed item meta', e)
+        log('ERROR parsing feed item meta', e.toString())
         return
       }
 
       if (!resBatch[id]) {
-        resBatch[id] = scrapeFeedItem(node, id)
-      }
-      else {
-        log('ID already scraped', id)
+        let post = scrapeFeedItem(node, id)
+        if (post) {
+          resBatch[id] = post
+        }
       }
     })
 
@@ -59,13 +59,13 @@ async function scrapePage(page) {
         post.url = link.href
         post.rawTime = timeNode.innerText.trim()
         post.timeScanned = new Date().getTime()
-      }
-      catch (e) {
-        log('Error parsing post', {time: timeNode, link, error: e})
-        post.error = e.toString()
-      }
 
-      return post
+        return post
+      }
+      catch (error) {
+        log('Skipping feed post:', error.toString(), `Post text: \n"${node?.innerText?.substring(0, 100)}..."`)
+        return null
+      }
     }
   })
 }

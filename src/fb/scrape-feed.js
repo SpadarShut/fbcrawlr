@@ -24,7 +24,7 @@ export async function collectPosts({url, browser, dates = []}) {
   const [minDate, maxDate] = dates
 
   while (!endReached) {
-    let log = Log(`${url}, batch #${batchNumber + 1}`)
+    let log = Log(`BATCH ${url}, #${batchNumber + 1}`)
     let rawPosts = await getBatch(page, !!batchNumber)
     let batchSize = rawPosts.length
 
@@ -47,7 +47,7 @@ export async function collectPosts({url, browser, dates = []}) {
     }
 
     batchRetryCount = 0
-    log(`batch ${batchNumber} received with ${batchSize} posts`)
+    log(`received with ${batchSize} posts`)
 
     let tooOldPostsCount = 0
     let tooNewPostsCount = 0

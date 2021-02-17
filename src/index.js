@@ -70,7 +70,7 @@ await Promise.allSettled(
   })
 )
 
-console.log('ALL SCRAPING DONE')
+console.log(`ALL SCRAPING DONE. See results in ./${OUTPUT_DIR || 'output'}/`)
 
 if (CLOSE_BROWSER_WHEN_DONE) {
   await browser.close()
