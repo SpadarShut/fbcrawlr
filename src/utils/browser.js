@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import fetch from 'node-fetch'
+import path from 'path'
 import { sleep } from './async'
 
 export {
@@ -30,7 +31,8 @@ async function startBrowser(options = {}) {
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--lang=en'
-    ]
+    ],
+    userDataDir: path.join(process.cwd(), '.user')
   })
 }
 
@@ -41,11 +43,11 @@ async function getBrowserInstance() {
   try {
     let url = `http://localhost:${SERVER_PORT}/browser/ws`
     browserWSEndpoint = await fetch(url).then(r => r.text())
+    console.log('Connected to existing browser instance')
     browser = await puppeteer.connect({ browserWSEndpoint })
   }
   catch (e) {
     if (!browser) {
-      console.log('Opening new browser because', e)
       browser = await startBrowser()
     }
   }
