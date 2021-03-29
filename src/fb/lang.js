@@ -1,3 +1,5 @@
+import { Log } from '../utils/log'
+
 export {
   ensureEnglishUI,
   disableTranslations,
@@ -8,9 +10,15 @@ async function ensureEnglishUI(page) {
     'https://m.facebook.com/language.php',
     {waitUntil: 'networkidle2'}
   ) // https://m.facebook.com/language.php?n=%2Fhome.php
+  const isEnglishAlready = await page.$eval('#rootcontainer', (el) => {
+    return el.innerText.trim().indexOf('English') === 0
+  })
+  if (isEnglishAlready) {
+    return true
+  }
   await page.click('div[value="en_US"]')
   await page.waitForNavigation()
-  console.log('ensureEnglishUI: Language EN set')
+  Log('ensureEnglishUI')('Language EN set')
 }
 
 async function disableTranslations(page) {

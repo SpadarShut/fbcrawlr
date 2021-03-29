@@ -1,6 +1,5 @@
 ## Setup
 - Install [node.js](https://nodejs.org/en/) v14.8 or newer.
-  Or run scripts with `--harmony-top-level-await` node flag
 - In repository directory run `npm i`
 - Copy `.env.yml.example` to `.env.yml`
 - Register a new Facebook account with a new email as it may be blocked by Facebook.
