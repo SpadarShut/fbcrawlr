@@ -6,10 +6,6 @@ let login = async (args) => {
   const log = Log('login')
   const {page, user, pass, headless} = args
 
-  if (!user || !pass) {
-    log('Username and/or password not provided, acting anonymously')
-    return
-  }
   await page.goto('https://m.facebook.com', { waitUntil: 'networkidle2' })
   try {
     // if post form is on page, we are logged in
@@ -17,9 +13,13 @@ let login = async (args) => {
     return true
   }
   catch (e) {
-    log('Trying to log in')
+    if (!user || !pass) {
+      log('Username and/or password not provided, acting anonymously')
+      return
+    }
   }
 
+  log('Trying to log in')
   await page.waitForSelector(SELECTORS.login)
   await page.type(SELECTORS.login, user)
   await page.type(SELECTORS.pass, pass)

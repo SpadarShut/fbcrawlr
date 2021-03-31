@@ -6,8 +6,7 @@ export async function getBatch(page) {
 }
 
 async function scrapePage(page) {
-  const log = Log('scrapePage')
-  log('start')
+  Log('scrapePage')('start')
 
   return page.evaluate(() => {
     /* eslint-env browser */
@@ -63,8 +62,15 @@ async function scrapePage(page) {
         return post
       }
       catch (error) {
-        log('Skipping feed post:', error.toString(), `Post text: \n"${node?.innerText?.substring(0, 100)}..."`)
-        return null
+        log(
+          'Skipping feed item:',
+          `"${error.toString()}". `,
+          `Post text: \n"${node?.innerText?.substring(0, 100)}..."`
+        )
+        // return null
+        return {
+          error: error.toString()
+        }
       }
     }
   })

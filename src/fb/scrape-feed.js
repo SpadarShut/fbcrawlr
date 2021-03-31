@@ -53,7 +53,7 @@ export async function collectPosts({url, browser, dates = []}) {
     let tooNewPostsCount = 0
     let sponsoredCount = 0
     let evaluationErrorCount = 0
-    let timeParingErrorCount = 0
+    let timeParsingErrorCount = 0
     let processedCount = 0
 
     const filteredPosts = rawPosts
@@ -63,13 +63,13 @@ export async function collectPosts({url, browser, dates = []}) {
         sponsored: post.rawTime.search(/sponsored/i) > -1
       }))
       .filter(({date, error, id, sponsored}) => {
-        let postTooOld = date < new Date(minDate)
-        let postTooNew = maxDate && (new Date(maxDate) < date)
+        let postTooOld = date && date < new Date(minDate)
+        let postTooNew = date && maxDate && (new Date(maxDate) < date)
         let postAlreadyProcessed = result.has(id)
 
         sponsoredCount += sponsored
         evaluationErrorCount += !!error
-        timeParingErrorCount += !date
+        timeParsingErrorCount += !date
         tooOldPostsCount += postTooOld
         tooNewPostsCount += postTooNew
         processedCount += postAlreadyProcessed
@@ -83,7 +83,7 @@ export async function collectPosts({url, browser, dates = []}) {
 
     // let allBatchIsTooNew = batchSize === tooNewPostsCount + sponsoredCount
     let allBatchIsTooOld = batchSize === tooOldPostsCount + sponsoredCount
-    let allBatchIsBroken = batchSize === timeParingErrorCount + sponsoredCount
+    let allBatchIsBroken = batchSize === timeParsingErrorCount + sponsoredCount
 
     log(
       'BATCH STATS:',
@@ -94,7 +94,7 @@ export async function collectPosts({url, browser, dates = []}) {
           tooNew: tooNewPostsCount,
           ads: sponsoredCount,
           err: evaluationErrorCount,
-          timeErr: timeParingErrorCount,
+          timeErr: timeParsingErrorCount,
           dupe: processedCount,
         })
         .filter(([,v]) => !!v)
