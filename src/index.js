@@ -1,5 +1,5 @@
 import dotenv from 'dotenv-yaml'
-import { makeValidFilename, saveJson } from './utils/fs'
+import { getFilenameFromUrl, saveJson } from './utils/fs'
 import { makeMobile } from './fb/links'
 import { scrapeURL } from './fb'
 import { parseDates } from './utils/parseDates'
@@ -13,7 +13,7 @@ const config = dotenv.config().parsed
 const {
   PAGES = [],
   DATES,
-  OUTPUT_DIR,
+  OUTPUT_DIR = 'output',
   CLOSE_BROWSER_WHEN_DONE
 } = config
 
@@ -42,35 +42,35 @@ const results = PAGES
     }
   })
 
-await Promise.allSettled(
-  results.map(async (res) => {
+Promise
+  .allSettled(results.map(async (res) => {
     let result = await res.data
-    let data = result
-      .map(({status, value, reason}) => {
-        return status === 'fulfilled' ? value : { error: reason }
-      })
-
-    let url = new URL(res.url)
-    let filename = url.pathname + url.search
-    // trim slashes at beginning and end
-    filename = filename.replace(/(^\/|\/$)/g, '')
-    // replace illegal filename characters
-    filename = makeValidFilename(filename)
-    filename += '.json'
-    filename = `${OUTPUT_DIR || 'output'}/${filename}`
+    let data = result.map(({status, value, reason}) => {
+      return status === 'fulfilled' ?
+        value :
+        {error: reason}
+    })
+    let filename = `${OUTPUT_DIR}/${getFilenameFromUrl(res.url)}.json`
 
     log('DONE!', res.url, data)
 
     try {
-      return saveJson({ data, filename })
+      await saveJson({data, filename})
+      log(`Saved results for ${res.url} in file ${filename}`)
     }
     catch (e) {
       log('Error saving file', filename)
     }
+  }))
+  .then(() => {
+    log(`ALL SCRAPING DONE. See results in ./${OUTPUT_DIR}/`)
   })
-)
+  .catch (e => {
+    log('ERROR SCRAPING:', e)
+  })
 
-console.log(`ALL SCRAPING DONE. See results in ./${OUTPUT_DIR || 'output'}/`)
+
+
 
 if (CLOSE_BROWSER_WHEN_DONE) {
   await browser.close()

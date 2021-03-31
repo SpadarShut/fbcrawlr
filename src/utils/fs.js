@@ -40,3 +40,12 @@ function makeValidFilename(filename = 'file', options = {}) {
 
   return res
 }
+
+export function getFilenameFromUrl(url) {
+  let _url = new URL(url)
+  let filename = _url.pathname + _url.search
+  // trim slashes at beginning and end
+  filename = filename.replace(/(^\/|\/$)/g, '')
+  // replace illegal filename characters
+  return makeValidFilename(filename)
+}
