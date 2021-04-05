@@ -17,8 +17,21 @@ export async function setupPage(page, options = {}) {
 
   if (loadImages === false) {
     await page.setRequestInterception(true)
+    const blockResources = [
+      'image',
+      'imageset',
+      'media',
+      'font',
+      'textrack',
+      'object',
+      'beacon',
+      'csp_report',
+    ]
     page.on('request', (request) => {
-      if (['image'/*, 'stylesheet', 'font', 'script'*/].indexOf(request.resourceType()) !== -1) {
+      if (
+        blockResources.indexOf(request.resourceType()) !== -1 ||
+        request.url().match(/\.((jpe?g)|png|gif)/) != null
+      ) {
         request.abort()
       }
       else {

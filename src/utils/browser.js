@@ -30,7 +30,10 @@ async function startBrowser(options = {}) {
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--lang=en'
+      '--lang=en',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
     ],
     userDataDir: path.join(process.cwd(), '.user')
   })
