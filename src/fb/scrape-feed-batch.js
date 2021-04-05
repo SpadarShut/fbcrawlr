@@ -15,7 +15,7 @@ async function scrapePage(page) {
     // save nodes processed between batches
     const nodesProcessed = __.nodesProcessed || new WeakMap()
     __.nodesProcessed = nodesProcessed
-    const resBatch = []
+    const resBatch = {}
     const log = Log('collectPosts in-page')
     const posts = $$(SELECTORS.feedPost)
 
@@ -53,6 +53,11 @@ async function scrapePage(page) {
       const link = node.querySelector(SELECTORS.postLink)
       const timeNode = node.querySelector(SELECTORS.postTime)
 
+      // Ignore it, this is probably suggested groups carousel
+      if (!link && !timeNode) {
+        return null
+      }
+
       try {
         post.id = id
         post.url = link.href
@@ -67,7 +72,6 @@ async function scrapePage(page) {
           `"${error.toString()}". `,
           `Post text: \n"${node?.innerText?.substring(0, 100)}..."`
         )
-        // return null
         return {
           error: error.toString()
         }

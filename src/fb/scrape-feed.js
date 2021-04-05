@@ -57,10 +57,11 @@ export async function collectPosts({url, browser, dates = []}) {
     let processedCount = 0
 
     const filteredPosts = rawPosts
+
       .map((post) => ({
         ...post,
         date: parseHumanDate(post.rawTime),
-        sponsored: post.rawTime.search(/sponsored/i) > -1
+        sponsored: post?.rawTime?.search(/sponsored/i) > -1
       }))
       .filter(({date, error, id, sponsored}) => {
         let postTooOld = date && date < new Date(minDate)
